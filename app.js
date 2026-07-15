@@ -3,6 +3,10 @@ let currentSong = null;
 let playedSongsCount = 0;
 let totalSongsCount = 0;
 
+// Tambahkan pencatat skor benar & salah di sini:
+let correctAnswersCount = 0;
+let wrongAnswersCount = 0;
+
 // Status Game Progresif Sesuai Konsep Koreksi
 let currentLife = 10;
 let durationIndex = 0;
@@ -17,6 +21,8 @@ const txtTotalSongs = document.getElementById('total-songs');
 const txtRemainingSongs = document.getElementById('remaining-songs');
 const txtLivesCounter = document.getElementById('lives-counter');
 const txtCurrentDuration = document.getElementById('current-duration');
+const txtCorrectCounter = document.getElementById('correct-counter');
+const txtWrongCounter = document.getElementById('wrong-counter');
 const btnPlay = document.getElementById('btn-play');
 const audioPlayer = document.getElementById('audio-player');
 const guessInput = document.getElementById('guess-input');
@@ -112,6 +118,7 @@ btnStart.addEventListener('click', () => {
         return;
     }
 
+
     btnStart.innerText = "Membaca CSV...";
     btnStart.disabled = true;
 
@@ -128,9 +135,16 @@ btnStart.addEventListener('click', () => {
         }
 
         // Ambil data lagu, maksimal batasi 300 sesuai konsep awal
-        gameSongs = parsedSongs.slice(0, 300);
+        // Salin data ke array game
+        gameSongs = [...parsedSongs];
         totalSongsCount = gameSongs.length;
         playedSongsCount = 0;
+        
+        // Reset skor benar & salah saat ganti file CSV
+        correctAnswersCount = 0;
+        wrongAnswersCount = 0;
+        txtCorrectCounter.innerText = "0";
+        txtWrongCounter.innerText = "0";
 
         txtTotalSongs.innerText = `Total Lagu: ${totalSongsCount}`;
         
@@ -281,6 +295,10 @@ function handleSuccess() {
     audioPlayer.pause();
     lockControls();
     
+    // Tambah skor BENAR dan perbarui tampilannya
+    correctAnswersCount++;
+    txtCorrectCounter.innerText = correctAnswersCount;
+    
     albumCover.src = currentSong.cover;
     songTitle.innerText = currentSong.title;
     songArtist.innerText = currentSong.artist;
@@ -290,6 +308,10 @@ function handleSuccess() {
 function handleGameOver() {
     lockControls();
     txtLivesCounter.innerText = `Kesempatan: 0/10`;
+    
+    // Tambah skor SALAH dan perbarui tampilannya
+    wrongAnswersCount++;
+    txtWrongCounter.innerText = wrongAnswersCount;
     
     albumCover.src = currentSong.cover;
     songTitle.innerText = currentSong.title;
