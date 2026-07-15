@@ -1,0 +1,177 @@
+/* Reset dasar untuk tampilan yang bersih */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+}
+
+/* Tema Utama: Dark Mode */
+body {
+    background-color: #121212; /* Gelap khas aplikasi musik */
+    color: #e0e0e0; /* Teks putih keabu-abuan agar tidak silau */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    padding: 20px;
+}
+
+/* Kontainer Utama Game */
+.game-container {
+    background-color: #1e1e1e; /* Warna card sedikit lebih terang dari background */
+    padding: 30px;
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+    width: 100%;
+    max-width: 500px;
+    text-align: center;
+}
+
+h1 {
+    margin-bottom: 25px;
+    font-size: 24px;
+    color: #ffffff;
+}
+
+/* Gaya untuk Input Teks (Link & Tebakan) */
+input[type="text"] {
+    width: 100%;
+    padding: 12px 16px;
+    background-color: #2a2a2a;
+    border: 2px solid #333333;
+    border-radius: 8px;
+    color: #ffffff;
+    font-size: 16px;
+    margin-bottom: 15px;
+    outline: none;
+    transition: border-color 0.2s;
+}
+
+input[type="text"]:focus {
+    border-color: #777777;
+}
+
+input[type="text"]:disabled {
+    background-color: #1a1a1a;
+    border-color: #222222;
+    color: #555555;
+    cursor: not-allowed;
+}
+
+/* Tombol Umum */
+button {
+    padding: 12px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: opacity 0.2s, transform 0.1s;
+}
+
+button:active {
+    transform: scale(0.98);
+}
+
+button:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+    transform: none;
+}
+
+/* Tombol Khusus */
+#btn-start, #btn-next {
+    width: 100%;
+    background-color: #372963; /* Warna ungu gelap estetik */
+    color: white;
+}
+
+#btn-play {
+    background-color: #333333;
+    color: #ffffff;
+    width: 100%;
+    margin: 20px 0;
+}
+
+/* Grup Tombol Aksi */
+.button-group {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+}
+
+/* Warna Pastel Sesuai Request */
+#btn-submit {
+    flex: 1;
+    background-color: #a8dfb5; /* Hijau Pastel */
+    color: #1b3a24; /* Teks hijau gelap agar kontras */
+}
+
+#btn-skip {
+    flex: 1;
+    background-color: #ffb3b3; /* Merah Pastel */
+    color: #4a1c1c; /* Teks merah gelap agar kontras */
+}
+
+/* Info Status Game */
+.game-info {
+    display: flex;
+    justify-content: space-between;
+    font-size: 14px;
+    color: #b3b3b3;
+    margin-bottom: 15px;
+    background-color: #252525;
+    padding: 10px;
+    border-radius: 6px;
+}
+
+/* Detail Lagu (Reward / Game Over) */
+#song-detail {
+    margin-top: 20px;
+}
+
+#song-detail hr {
+    border: 0;
+    height: 1px;
+    background: #333333;
+    margin-bottom: 20px;
+}
+
+#album-cover {
+    width: 150px;
+    height: 150px;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    object-fit: cover;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+}
+
+#song-title {
+    font-size: 18px;
+    color: #ffffff;
+    margin-bottom: 5px;
+}
+
+#song-artist {
+    font-size: 14px;
+    color: #b3b3b3;
+    margin-bottom: 20px;
+}
+
+/* Class Utility untuk Menyembunyikan Elemen */
+.hidden {
+    display: none !important;
+}
+
+/* Sembunyikan pemutar video YouTube agar menjadi pemutar audio saja */
+.hidden-player {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    border: 0;
+}

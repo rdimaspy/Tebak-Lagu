@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Tebak Lagu Instan</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+        <h1>🎵 Game Tebak Lagu</h1>
+
+        <!-- INPUT UPLOAD CSV -->
+        <div id="setup-section">
+            <label for="csv-file" style="color: #e0e0e0; display: block; margin-bottom: 15px; font-size: 14px;">
+                Unggah file playlist (.csv) hasil ekspor di Exportify:
+            </label>
+            <!-- Input file menerima khusus format .csv -->
+            <input type="file" id="csv-file" accept=".csv" style="width: 100%; padding: 10px; border-radius: 8px; background: #2a2a2a; color: white; border: 1px solid #444; margin-bottom: 20px; font-size: 15px;">
+            <button id="btn-start" style="width: 100%;">Mulai Game</button>
+        </div>
+
+        <!-- AREA PERMAINAN -->
+        <div id="game-section" class="hidden">
+            <div class="game-info">
+                <p id="total-songs">Total Lagu: 0</p>
+                <p id="remaining-songs">Sisa Lagu: 0/0</p>
+                <p id="lives-counter">Kesempatan: 10/10</p>
+            </div>
+
+            <!-- Audio Player Standar Browser (Tersembunyi) -->
+            <audio id="audio-player" class="hidden-player"></audio>
+
+            <div class="audio-control">
+                <button id="btn-play">▶️ Dengarkan (<span id="current-duration">1</span>s)</button>
+            </div>
+
+            <div class="guess-control">
+                <input type="text" id="guess-input" placeholder="Ketik judul lagu di sini..." autocomplete="one-time-code" autocapitalize="off" spellcheck="false" disabled>
+                <div class="button-group">
+                    <button id="btn-submit" disabled>Submit</button>
+                    <button id="btn-skip" disabled>Skip</button>
+                </div>
+            </div>
+
+            <!-- DETAIL JAWABAN -->
+            <div id="song-detail" class="hidden">
+                <hr>
+                <img id="album-cover" src="" alt="Cover Lagu" style="max-width: 150px; border-radius: 8px; margin-bottom: 10px;">
+                <h3 id="song-title">Judul Lagu</h3>
+                <p id="song-artist" style="color: #b0b0b0; margin-bottom: 15px;">Nama Artis</p>
+                <button id="btn-next">Lagu Selanjutnya ➡️</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
