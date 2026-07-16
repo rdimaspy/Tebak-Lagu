@@ -35,34 +35,34 @@ const songArtist = document.getElementById('song-artist');
 const btnNext = document.getElementById('btn-next');
 
 // --- 1. PARSER FILE CSV MANUAL (MEMBACA TRACK & ARTIST) ---
+// --- 1. PARSER FILE CSV MANUAL (VERSI AMAN MOBILE & DESKTOP) ---
 function parseCSV(text) {
-    const lines = text.split('\n');
+    // Memotong baris dengan regex agar mendukung \n maupun \r\n bawaan HP
+    const lines = text.split(/\r?\n/);
     if (lines.length < 2) return [];
 
-    // Ambil header untuk mencari indeks kolom Track Name & Artist Name(s)
+    // Ambil header untuk mencari indeks kolom
     const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
     const trackIdx = headers.indexOf('Track Name');
     const artistIdx = headers.indexOf('Artist Name(s)');
 
     if (trackIdx === -1 || artistIdx === -1) {
-        alert("Format CSV tidak cocok! Pastikan file adalah hasil ekspor Spotify asli (memiliki kolom 'Track Name' dan 'Artist Name(s)').");
+        alert("Format CSV tidak cocok! Pastikan file adalah hasil ekspor Spotify asli.");
         return [];
     }
 
     const songs = [];
     
-    // Looping setiap baris data (lewati baris 0/header)
     for (let i = 1; i < lines.length; i++) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Pembacaan baris yang aman dari tanda koma di dalam tanda kutip (Regex CSV)
+        // Regex yang lebih aman untuk memisahkan koma di dalam tanda kutip
         const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
         
         let title = matches[trackIdx] ? matches[trackIdx].trim() : "";
         let artist = matches[artistIdx] ? matches[artistIdx].trim() : "";
 
-        // Bersihkan tanda kutip pembungkus bawaan CSV jika ada
         title = title.replace(/^["']|["']$/g, '').replace(/\\'/g, "'");
         artist = artist.replace(/^["']|["']$/g, '').replace(/\\'/g, "'");
 
@@ -71,7 +71,7 @@ function parseCSV(text) {
         }
     }
     return songs;
-}
+}   
 
 // --- 2. CLEAN UP TEKS JUDUL UNTUK VALIDASI TEBAKAN ---
 function cleanTitle(title) {
@@ -110,6 +110,7 @@ async function getAppleAudio(title, artist) {
 }
 
 // --- 4. LOGIKA TOMBOL START GAME (READ FILE) ---
+// --- 4. LOGIKA TOMBOL START GAME (READ FILE VERSI MOBILE AMAN) ---
 btnStart.addEventListener('click', () => {
     const file = csvFileInput.files[0];
     
@@ -118,40 +119,43 @@ btnStart.addEventListener('click', () => {
         return;
     }
 
-
     btnStart.innerText = "Membaca CSV...";
     btnStart.disabled = true;
 
     const reader = new FileReader();
     
-    // Jalankan logika setelah file teks CSV sukses dibaca browser
     reader.onload = async function(e) {
-        const text = e.target.result;
-        const parsedSongs = parseCSV(text);
+        try {
+            const text = e.target.result;
+            const parsedSongs = parseCSV(text);
 
-        if (parsedSongs.length === 0) {
+            if (parsedSongs.length === 0) {
+                alert("Tidak ada lagu yang berhasil dibaca dari file ini.");
+                resetStartButton();
+                return;
+            }
+
+            gameSongs = parsedSongs.slice(0, 300);
+            totalSongsCount = gameSongs.length;
+            playedSongsCount = 0;
+
+            txtTotalSongs.innerText = `Total Lagu: ${totalSongsCount}`;
+            
+            setupSection.classList.add('hidden');
+            gameSection.classList.remove('hidden');
+
+            await startNewRound();
+        } catch (error) {
+            console.error(error);
+            alert("Gagal memproses file di perangkat ini. Coba gunakan browser resmi seperti Chrome atau Safari.");
             resetStartButton();
-            return;
         }
+    };
 
-        // Ambil data lagu, maksimal batasi 300 sesuai konsep awal
-        // Salin data ke array game
-        gameSongs = [...parsedSongs];
-        totalSongsCount = gameSongs.length;
-        playedSongsCount = 0;
-        
-        // Reset skor benar & salah saat ganti file CSV
-        correctAnswersCount = 0;
-        wrongAnswersCount = 0;
-        txtCorrectCounter.innerText = "0";
-        txtWrongCounter.innerText = "0";
-
-        txtTotalSongs.innerText = `Total Lagu: ${totalSongsCount}`;
-        
-        setupSection.classList.add('hidden');
-        gameSection.classList.remove('hidden');
-
-        await startNewRound();
+    // Antisipasi jika pembacaan file error di HP
+    reader.onerror = function() {
+        alert("Gagal membaca file. Pastikan browser memberikan izin akses file lokal.");
+        resetStartButton();
     };
 
     reader.readAsText(file);
