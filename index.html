@@ -45,10 +45,11 @@
 
             <div class="guess-control">
                 <input type="text" id="guess-input" placeholder="Ketik judul lagu di sini..." autocomplete="one-time-code" autocapitalize="off" spellcheck="false" disabled>
-                <div class="button-group">
-                    <button id="btn-submit" disabled>Submit</button>
-                    <button id="btn-skip" disabled>Skip</button>
+                <div class="button-group" style="margin-bottom: 10px;">
+                    <button id="btn-submit" style="background-color: #00FF00; color: #000; font-weight: bold;" disabled>Submit</button>
+                    <button id="btn-skip" style="background-color: #FF8C00; color: #fff; font-weight: bold;" disabled>Skip</button>
                 </div>
+                <button id="btn-giveup" style="width: 100%; padding: 12px; background-color: #FF0000; color: #fff; font-weight: bold; border: none; border-radius: 6px; cursor: pointer;" disabled>🏳️ Menyerah</button>
             </div>
 
             <div id="song-detail" class="hidden">

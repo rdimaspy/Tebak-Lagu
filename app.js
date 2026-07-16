@@ -27,6 +27,7 @@ const audioPlayer = document.getElementById('audio-player');
 const guessInput = document.getElementById('guess-input');
 const btnSubmit = document.getElementById('btn-submit');
 const btnSkip = document.getElementById('btn-skip');
+const btnGiveUp = document.getElementById('btn-giveup');
 const songDetail = document.getElementById('song-detail');
 const albumCover = document.getElementById('album-cover');
 const songTitle = document.getElementById('song-title');
@@ -80,6 +81,9 @@ function cleanTitle(title) {
         .replace(/explicit/g, '')
         .replace(/\(.*\)/g, '')
         .replace(/\[.*\]/g, '')
+        // Menghapus semua tanda baca seperti !, ?, ., ,, :, ;, dan tanda petik
+        .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()?"']/g, "")
+        // Menghapus spasi ganda yang tidak sengaja terbentuk di awal/akhir
         .trim();
 }
 
@@ -242,6 +246,7 @@ async function startNewRound() {
     guessInput.disabled = false;
     btnSubmit.disabled = false;
     btnSkip.disabled = false;
+    btnGiveUp.disabled = false;
     btnPlay.disabled = false;
     btnPlay.innerText = `▶️ Dengarkan (${durationStages[durationIndex]}s)`;
 
@@ -344,9 +349,31 @@ function lockControls() {
     guessInput.disabled = true;
     btnSubmit.disabled = true;
     btnSkip.disabled = true;
+    btnGiveUp.disabled = true;
     btnPlay.disabled = true;
 }
 
 btnNext.addEventListener('click', async () => {
     await startNewRound();
 });
+
+// --- 9. LOGIKA TOMBOL MENYERAH ---
+btnGiveUp.addEventListener('click', () => {
+    // Menyerah langsung membuka detail jawaban asli dan menambah skor ❌ Salah
+    handleGameOver();
+});
+
+function handleGameOver() {
+    lockControls(); // Mengunci semua tombol input biar ga bisa disubmit lagi
+    txtLivesCounter.innerText = `Kesempatan: 0/10`;
+    
+    // Menambah statistik skor SALAH
+    wrongAnswersCount++;
+    txtWrongCounter.innerText = wrongAnswersCount;
+    
+    // MEMBUKA JAWABAN BENAR: Menampilkan cover, judul, artis, dan tombol "Lagu Selanjutnya"
+    albumCover.src = currentSong.cover;
+    songTitle.innerText = currentSong.title;
+    songArtist.innerText = currentSong.artist;
+    songDetail.classList.remove('hidden'); // Memunculkan kotak detail jawaban
+}
