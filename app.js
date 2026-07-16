@@ -3,19 +3,19 @@ let currentSong = null;
 let playedSongsCount = 0;
 let totalSongsCount = 0;
 
-// Tambahkan pencatat skor benar & salah di sini:
 let correctAnswersCount = 0;
 let wrongAnswersCount = 0;
 
 // Status Game Progresif Sesuai Konsep Koreksi
 let currentLife = 10;
 let durationIndex = 0;
-const durationStages = [1, 3, 5, 10, 30]; // 5 Tahap Durasi Utama
+const durationStages = [1, 3, 5, 10, 30];
 
 // Elemen DOM
 const setupSection = document.getElementById('setup-section');
 const gameSection = document.getElementById('game-section');
 const csvFileInput = document.getElementById('csv-file');
+const csvTextarea = document.getElementById('csv-textarea');
 const btnStart = document.getElementById('btn-start');
 const txtTotalSongs = document.getElementById('total-songs');
 const txtRemainingSongs = document.getElementById('remaining-songs');
@@ -34,20 +34,17 @@ const songTitle = document.getElementById('song-title');
 const songArtist = document.getElementById('song-artist');
 const btnNext = document.getElementById('btn-next');
 
-// --- 1. PARSER FILE CSV MANUAL (MEMBACA TRACK & ARTIST) ---
-// --- 1. PARSER FILE CSV MANUAL (VERSI AMAN MOBILE & DESKTOP) ---
+// --- 1. PARSER FILE CSV MANUAL (AMAN DESKTOP & MOBILE) ---
 function parseCSV(text) {
-    // Memotong baris dengan regex agar mendukung \n maupun \r\n bawaan HP
     const lines = text.split(/\r?\n/);
     if (lines.length < 2) return [];
 
-    // Ambil header untuk mencari indeks kolom
     const headers = lines[0].split(',').map(h => h.trim().replace(/^["']|["']$/g, ''));
     const trackIdx = headers.indexOf('Track Name');
     const artistIdx = headers.indexOf('Artist Name(s)');
 
     if (trackIdx === -1 || artistIdx === -1) {
-        alert("Format CSV tidak cocok! Pastikan file adalah hasil ekspor Spotify asli.");
+        alert("Format CSV tidak valid! Pastikan teks/file memiliki kolom 'Track Name' dan 'Artist Name(s)'.");
         return [];
     }
 
@@ -57,7 +54,6 @@ function parseCSV(text) {
         const line = lines[i].trim();
         if (!line) continue;
 
-        // Regex yang lebih aman untuk memisahkan koma di dalam tanda kutip
         const matches = line.match(/(".*?"|[^",\s]+)(?=\s*,|\s*$)/g) || line.split(',');
         
         let title = matches[trackIdx] ? matches[trackIdx].trim() : "";
@@ -71,9 +67,9 @@ function parseCSV(text) {
         }
     }
     return songs;
-}   
+}
 
-// --- 2. CLEAN UP TEKS JUDUL UNTUK VALIDASI TEBAKAN ---
+// --- 2. CLEAN UP TEKS JUDUL ---
 function cleanTitle(title) {
     if (!title) return "";
     return title
@@ -88,7 +84,7 @@ function cleanTitle(title) {
         .trim();
 }
 
-// --- 3. CARI AUDIO DARI ITUNES (SUPER INSTAN & BEBAS CORS) ---
+// --- 3. CARI AUDIO DARI ITUNES ---
 async function getAppleAudio(title, artist) {
     try {
         const query = encodeURIComponent(`${title} ${artist}`);
@@ -109,70 +105,69 @@ async function getAppleAudio(title, artist) {
     return null;
 }
 
-// --- 4. LOGIKA TOMBOL START GAME (READ FILE) ---
+// --- 4. LOGIKA TOMBOL START GAME (DUA JALUR INPUT) ---
 btnStart.addEventListener('click', () => {
     const file = csvFileInput.files[0];
-    
-    if (!file) {
-        alert("Silakan pilih file playlist terlebih dahulu!");
-        return;
-    }
+    const rawText = csvTextarea.value.trim();
 
-    // Validasi manual ekstensi file secara internal
-    if (!file.name.endsWith('.csv')) {
-        alert("File yang kamu pilih bukan .csv! Pastikan mengunggah file playlist berformat .csv hasil ekspor Spotify.");
-        // Otomatis reset tombol agar bisa diklik lagi tanpa perlu refresh
-        resetStartButton();
-        return;
-    }
-
-    btnStart.innerText = "Membaca CSV...";
+    btnStart.innerText = "Memproses...";
     btnStart.disabled = true;
 
-    const reader = new FileReader();
-    
-    reader.onload = async function(e) {
-        try {
-            const text = e.target.result;
-            const parsedSongs = parseCSV(text);
-
-            if (parsedSongs.length === 0) {
-                alert("Tidak ada lagu yang berhasil dibaca. Pastikan isi kolom CSV sudah benar.");
-                resetStartButton();
-                return;
-            }
-
-            gameSongs = parsedSongs.slice(0, 300);
-            totalSongsCount = gameSongs.length;
-            playedSongsCount = 0;
-
-            txtTotalSongs.innerText = `Total Lagu: ${totalSongsCount}`;
-            
-            setupSection.classList.add('hidden');
-            gameSection.classList.remove('hidden');
-
-            await startNewRound();
-        } catch (error) {
-            console.error(error);
-            alert("Gagal memproses file pada perangkat ini.");
+    // JALUR 1: Jika ada teks di kolom Textarea (Prioritas Utama untuk Mobile)
+    if (rawText.length > 0) {
+        processCSVText(rawText);
+    } 
+    // JALUR 2: Jika menggunakan upload file (Untuk Desktop)
+    else if (file) {
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            processCSVText(e.target.result);
+        };
+        reader.onerror = function() {
+            alert("Gagal membaca file lokal.");
             resetStartButton();
-        }
-    };
-
-    reader.onerror = function() {
-        alert("Gagal membaca file secara total. Coba pakai browser utama seperti Chrome/Safari.");
+        };
+        reader.readAsText(file);
+    } 
+    // Jika dua-duanya kosong
+    else {
+        alert("Silakan pilih file CSV atau tempel isi teks CSV terlebih dahulu!");
         resetStartButton();
-    };
-
-    reader.readAsText(file);
+    }
 });
+
+function processCSVText(text) {
+    const parsedSongs = parseCSV(text);
+
+    if (parsedSongs.length === 0) {
+        resetStartButton();
+        return;
+    }
+
+    gameSongs = parsedSongs.slice(0, 300);
+    totalSongsCount = gameSongs.length;
+    playedSongsCount = 0;
+
+    // Reset Skor Statistik
+    correctAnswersCount = 0;
+    wrongAnswersCount = 0;
+    txtCorrectCounter.innerText = "0";
+    txtWrongCounter.innerText = "0";
+
+    txtTotalSongs.innerText = `Total Lagu: ${totalSongsCount}`;
+    
+    setupSection.classList.add('hidden');
+    gameSection.classList.remove('hidden');
+
+    startNewRound();
+}
 
 function resetStartButton() {
     btnStart.innerText = "Mulai Game";
     btnStart.disabled = false;
 }
 
-// --- 5. MEMULAI RONDE BARU ---
+// --- 5. RONDE BARU ---
 async function startNewRound() {
     if (gameSongs.length === 0 || playedSongsCount >= totalSongsCount) {
         alert("Hebat! Semua lagu di playlist sudah selesai dimainkan.");
@@ -186,7 +181,6 @@ async function startNewRound() {
     let foundAudioData = null;
     let randomIndex = -1;
 
-    // Cari lagu acak dari data CSV yang cuplikan mp3-nya tersedia di iTunes
     while (!foundAudioData && gameSongs.length > 0) {
         randomIndex = Math.floor(Math.random() * gameSongs.length);
         currentSong = gameSongs[randomIndex];
@@ -194,36 +188,32 @@ async function startNewRound() {
         foundAudioData = await getAppleAudio(currentSong.title, currentSong.artist);
         
         if (!foundAudioData) {
-            // Jika audio tidak ketemu di iTunes, lewati dan buang lagu ini
             gameSongs.splice(randomIndex, 1);
         }
     }
 
     if (!foundAudioData) {
-        alert("Kehabisan lagu yang dapat diputar dari file ini!");
+        alert("Kehabisan lagu yang dapat diputar!");
         location.reload();
         return;
     }
 
-    // Hapus dari antrean babak game agar tidak duplikat keluar lagi
     gameSongs.splice(randomIndex, 1);
     playedSongsCount++;
     txtRemainingSongs.innerText = `Sisa Lagu: ${totalSongsCount - playedSongsCount}/${totalSongsCount}`;
 
-    // Reset Nyawa dan Index Durasi ke Awal (1 Detik)
     currentLife = 10;
     durationIndex = 0;
 
     txtLivesCounter.innerText = `Kesempatan: ${currentLife}/10`;
     txtCurrentDuration.innerText = durationStages[durationIndex];
 
-    // Hubungkan link audio pratinjau mp3 ke elemen audio
     audioPlayer.src = foundAudioData.audioUrl;
     audioPlayer.load();
 
     currentSong.cover = foundAudioData.realCover;
 
-    // Buka kembali kontrol interaksi game
+    // Blokir riwayat autocomplete Chrome & Edge dengan merandom nama input
     guessInput.setAttribute('name', 'guess_' + Math.random().toString(36).substring(7));
 
     guessInput.value = "";
@@ -232,11 +222,11 @@ async function startNewRound() {
     btnSkip.disabled = false;
     btnPlay.disabled = false;
     btnPlay.innerText = `▶️ Dengarkan (${durationStages[durationIndex]}s)`;
-    
+
     songDetail.classList.add('hidden');
 }
 
-// --- 6. LOGIKA TOMBOL PLAY AUDIO INSTAN ---
+// --- 6. TOMBOL PLAY AUDIO ---
 btnPlay.addEventListener('click', () => {
     const maxDuration = durationStages[durationIndex];
     
@@ -256,18 +246,32 @@ btnPlay.addEventListener('click', () => {
     }, 50);
 });
 
-// --- 7. LOGIKA TOMBOL SUBMIT ---
+// --- 7. LOGIKA VALIDASI TEBAKAN SUBMIT (ANTI-CURANG KARAKTER PENDEK) ---
 btnSubmit.addEventListener('click', () => {
     const userGuess = cleanTitle(guessInput.value);
     const actualTitle = cleanTitle(currentSong.title);
 
     if (userGuess === "") return;
 
+    // PROTEKSI: Jika tebakan kurang dari 3 huruf, langsung anggap salah agar tidak bisa curang 1 huruf
+    if (userGuess.length < 3) {
+        alert("Tebakan terlalu pendek! Ketik minimal 3 karakter judul lagu.");
+        currentLife--;
+        guessInput.value = "";
+        if (currentLife > 0) {
+            txtLivesCounter.innerText = `Kesempatan: ${currentLife}/10`;
+        } else {
+            handleGameOver();
+        }
+        return;
+    }
+
+    // Validasi Kecocokan Judul
     if (userGuess === actualTitle || actualTitle.includes(userGuess)) {
         handleSuccess();
     } else {
         currentLife--;
-        guessInput.value = ""; // Bersihkan kolom input otomatis kalau tebakan salah
+        guessInput.value = "";
         
         if (currentLife > 0) {
             txtLivesCounter.innerText = `Kesempatan: ${currentLife}/10`;
@@ -277,11 +281,11 @@ btnSubmit.addEventListener('click', () => {
     }
 });
 
-// --- 8. LOGIKA TOMBOL SKIP ---
+// --- 8. TOMBOL SKIP ---
 btnSkip.addEventListener('click', () => {
     if (durationIndex < durationStages.length - 1) {
         durationIndex++;
-        currentLife--; // Mengurangi nyawa murni karena skip durasi
+        currentLife--;
         
         if (currentLife > 0) {
             txtLivesCounter.innerText = `Kesempatan: ${currentLife}/10`;
@@ -291,7 +295,6 @@ btnSkip.addEventListener('click', () => {
             handleGameOver();
         }
     } else {
-        // Jika durasi sudah mentok 30 detik tapi skip lagi, kurangi nyawa murni
         currentLife--;
         if (currentLife > 0) {
             txtLivesCounter.innerText = `Kesempatan: ${currentLife}/10`;
@@ -305,7 +308,6 @@ function handleSuccess() {
     audioPlayer.pause();
     lockControls();
     
-    // Tambah skor BENAR dan perbarui tampilannya
     correctAnswersCount++;
     txtCorrectCounter.innerText = correctAnswersCount;
     
@@ -319,7 +321,6 @@ function handleGameOver() {
     lockControls();
     txtLivesCounter.innerText = `Kesempatan: 0/10`;
     
-    // Tambah skor SALAH dan perbarui tampilannya
     wrongAnswersCount++;
     txtWrongCounter.innerText = wrongAnswersCount;
     
