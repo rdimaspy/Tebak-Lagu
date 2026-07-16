@@ -15,7 +15,6 @@ const durationStages = [1, 3, 5, 10, 30];
 const setupSection = document.getElementById('setup-section');
 const gameSection = document.getElementById('game-section');
 const csvFileInput = document.getElementById('csv-file');
-const csvTextarea = document.getElementById('csv-textarea');
 const btnStart = document.getElementById('btn-start');
 const txtTotalSongs = document.getElementById('total-songs');
 const txtRemainingSongs = document.getElementById('remaining-songs');
@@ -108,32 +107,55 @@ async function getAppleAudio(title, artist) {
 // --- 4. LOGIKA TOMBOL START GAME (DUA JALUR INPUT) ---
 btnStart.addEventListener('click', () => {
     const file = csvFileInput.files[0];
-    const rawText = csvTextarea.value.trim();
+    
+    if (!file) {
+        alert("Silakan pilih file CSV playlist terlebih dahulu!");
+        return;
+    }
+
+    if (!file.name.endsWith('.csv')) {
+        alert("File yang kamu pilih bukan .csv! Pastikan mengunggah file playlist berformat .csv hasil ekspor Spotify.");
+        resetStartButton();
+        return;
+    }
 
     btnStart.innerText = "Memproses...";
     btnStart.disabled = true;
 
-    // JALUR 1: Jika ada teks di kolom Textarea (Prioritas Utama untuk Mobile)
-    if (rawText.length > 0) {
-        processCSVText(rawText);
-    } 
-    // JALUR 2: Jika menggunakan upload file (Untuk Desktop)
-    else if (file) {
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            processCSVText(e.target.result);
-        };
-        reader.onerror = function() {
-            alert("Gagal membaca file lokal.");
+    const reader = new FileReader();
+    reader.onload = function(e) {
+        const text = e.target.result;
+        const parsedSongs = parseCSV(text);
+
+        if (parsedSongs.length === 0) {
             resetStartButton();
-        };
-        reader.readAsText(file);
-    } 
-    // Jika dua-duanya kosong
-    else {
-        alert("Silakan pilih file CSV atau tempel isi teks CSV terlebih dahulu!");
+            return;
+        }
+
+        gameSongs = parsedSongs.slice(0, 300);
+        totalSongsCount = gameSongs.length;
+        playedSongsCount = 0;
+
+        // Reset Skor Statistik
+        correctAnswersCount = 0;
+        wrongAnswersCount = 0;
+        txtCorrectCounter.innerText = "0";
+        txtWrongCounter.innerText = "0";
+
+        txtTotalSongs.innerText = `Total Lagu: ${totalSongsCount}`;
+        
+        setupSection.classList.add('hidden');
+        gameSection.classList.remove('hidden');
+
+        startNewRound();
+    };
+    
+    reader.onerror = function() {
+        alert("Gagal membaca file lokal.");
         resetStartButton();
-    }
+    };
+    
+    reader.readAsText(file);
 });
 
 function processCSVText(text) {
