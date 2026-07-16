@@ -110,12 +110,19 @@ async function getAppleAudio(title, artist) {
 }
 
 // --- 4. LOGIKA TOMBOL START GAME (READ FILE) ---
-// --- 4. LOGIKA TOMBOL START GAME (READ FILE VERSI MOBILE AMAN) ---
 btnStart.addEventListener('click', () => {
     const file = csvFileInput.files[0];
     
     if (!file) {
-        alert("Silakan pilih file CSV playlist terlebih dahulu!");
+        alert("Silakan pilih file playlist terlebih dahulu!");
+        return;
+    }
+
+    // Validasi manual ekstensi file secara internal
+    if (!file.name.endsWith('.csv')) {
+        alert("File yang kamu pilih bukan .csv! Pastikan mengunggah file playlist berformat .csv hasil ekspor Spotify.");
+        // Otomatis reset tombol agar bisa diklik lagi tanpa perlu refresh
+        resetStartButton();
         return;
     }
 
@@ -130,7 +137,7 @@ btnStart.addEventListener('click', () => {
             const parsedSongs = parseCSV(text);
 
             if (parsedSongs.length === 0) {
-                alert("Tidak ada lagu yang berhasil dibaca dari file ini.");
+                alert("Tidak ada lagu yang berhasil dibaca. Pastikan isi kolom CSV sudah benar.");
                 resetStartButton();
                 return;
             }
@@ -147,14 +154,13 @@ btnStart.addEventListener('click', () => {
             await startNewRound();
         } catch (error) {
             console.error(error);
-            alert("Gagal memproses file di perangkat ini. Coba gunakan browser resmi seperti Chrome atau Safari.");
+            alert("Gagal memproses file pada perangkat ini.");
             resetStartButton();
         }
     };
 
-    // Antisipasi jika pembacaan file error di HP
     reader.onerror = function() {
-        alert("Gagal membaca file. Pastikan browser memberikan izin akses file lokal.");
+        alert("Gagal membaca file secara total. Coba pakai browser utama seperti Chrome/Safari.");
         resetStartButton();
     };
 
