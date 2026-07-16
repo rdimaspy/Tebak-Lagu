@@ -275,25 +275,13 @@ btnSubmit.addEventListener('click', () => {
 
     if (userGuess === "") return;
 
-    // PROTEKSI: Jika tebakan kurang dari 3 huruf, langsung anggap salah agar tidak bisa curang 1 huruf
-    if (userGuess.length < 3) {
-        alert("Tebakan terlalu pendek! Ketik minimal 3 karakter judul lagu.");
-        currentLife--;
-        guessInput.value = "";
-        if (currentLife > 0) {
-            txtLivesCounter.innerText = `Kesempatan: ${currentLife}/10`;
-        } else {
-            handleGameOver();
-        }
-        return;
-    }
-
-    // Validasi Kecocokan Judul
-    if (userGuess === actualTitle || actualTitle.includes(userGuess)) {
+    // Hapus includes() dan gunakan perbandingan mutlak (===) 
+    // agar ketikan 1 huruf tidak bisa menjebol judul lagu yang panjang
+    if (userGuess === actualTitle) {
         handleSuccess();
     } else {
         currentLife--;
-        guessInput.value = "";
+        guessInput.value = ""; // Otomatis kosongkan input jika salah
         
         if (currentLife > 0) {
             txtLivesCounter.innerText = `Kesempatan: ${currentLife}/10`;
